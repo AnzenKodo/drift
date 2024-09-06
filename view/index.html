@@ -1,0 +1,311 @@
+<!doctype html>
+<html>
+    <head>
+        <title>drift/view</title>
+        <meta charset="UTF-8" />
+        <meta name="color-scheme" content="dark light">
+        <!-- <script src="https://bundle.run/noble-secp256k1@1.2.14"></script> -->
+        <!-- <script src="https://bundle.run/browserify-cipher@1.0.1"></script> -->
+        <style>
+            *,::after,::before{box-sizing:border-box}html{line-height:1.15;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4}hr{height:0;color:inherit}abbr[title]{text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}::-moz-focus-inner{border-style:none;padding:0}:-moz-focusring{outline:1px dotted ButtonText}:-moz-ui-invalid{box-shadow:none}legend{padding:0}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}
+            :root {
+                --theme-color: aqua;
+                --theme-color-dark: color-mix(in srgb,var(--theme-color),#000 30%);
+            }
+            *:focus {
+                outline: 1px double;
+                outline-offset: 1px;
+            }
+            /* *::selection {} */
+            body {
+                font-size: 100%;
+                margin: .5rem;
+                background: black;
+                font-family: monospace;
+                display: grid;
+                grid-template-columns: 20rem auto;
+                grid-template-rows: 2rem auto;
+                justify-content: stretch;
+                grid-template-areas:
+                  "nav main"
+                  "aside main"
+                  ". footer";
+                justify-content: center;
+            }
+            a {
+                color: var(--theme-color);
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+            a:active {
+                color: var(--theme-color-dark);
+            }
+            button {
+                border: 1px solid;
+                background: none;
+                cursor: pointer;
+            }
+            button:hover {
+                border-style: dashed;
+            }
+            button:active {
+                border-style: dotted;
+            }
+            main {
+                grid-area: main;
+                width: 35rem;
+            }
+            aside {
+                grid-area: aside;
+            }
+            footer {
+                grid-area: footer;
+                justify-self: center;
+            }
+            textarea {
+                width: 100%;
+                height: 7rem;
+                margin: 0 .3rem 0rem 0;
+                padding: 1% 2%;
+                background: transparent;
+            }
+            textarea:hover {
+                border-style: dashed;
+            }
+            textarea:active {
+                border-style: dotted;
+            }
+            #user_profile {
+                display: grid;
+                grid-template-columns: 2rem auto;
+                grid-template-areas:
+                  "profile name"
+                  "profile username";
+                gap: 0 .5rem;
+                margin: 0rem 0 .6rem 0;
+            }
+            #user_profile .profile_image {
+                grid-area: profile;
+            }
+            #user_profile .profile_image img {
+                width: 100%;
+                border-radius: 100%;
+                background: purple;
+            }
+            #user_profile .profile_name {
+                /* align-self: end; */
+            }
+            #posts {
+                padding: 0rem .3rem;
+            }
+            #posts article {
+                display: grid;
+                grid-template-columns: 2rem auto;
+                grid-template-areas:
+                  "profile info"
+                  "profile content"
+                  "profile action";
+                grid-gap: 0 .5rem;
+                padding-bottom: 1rem;
+            }
+            #posts .profile_image {
+                grid-area: profile;
+            }
+            #posts .profile_image img {
+                width: 100%;
+                border-radius: 100%;
+            }
+            #posts .content {
+                grid-area: content;
+                line-height: 1.2rem;
+            }
+            #posts .content p {
+                margin-top: .3rem;
+            }
+        </style>
+    </head>
+    <body>
+        <nav>
+            <h1 style="font-family: monospace; padding: 0; margin: 0;">
+                drift<strong style="color: var(--theme-color)">/view</strong>
+            </h1>
+        </nav>
+        <aside>
+            <div id="user_profile">
+                <a class="profile_image"><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
+                <span class="profile_name"><a>Aman</a> @AnzenKodo</span>
+                <span class="profile_status">Grinding hard</span>
+            </div>
+            <textarea placeholder="Write your thoughts here."></textarea>
+            <button style="width: 100%">Post</button>
+        </aside>
+        <main>
+            <div id="posts">
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    </div>
+                    <div class="content">
+                        <p>"Victory did not come to the one who played by the rules; it came to the one who made the rules and imposed them on his enemy."<br>-- Genghis Khan</p>
+                        <p>"Don’t waste the rest of your time here worrying about other people—unless it affects the common good. It will keep you from doing anything useful. You’ll be too preoccupied with what so-and-so is doing, and why, and what they’re saying, and what they’re thinking, and what they’re up to, and all the other things that throw you off and keep you from focusing on your own mind."<br>--Marcus Aurelius
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (3)</button>
+                    </div>
+                </article>
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    </div>
+                    <div class="content">
+                        <p>Leftism isn’t supposed to make sense. It’s supposed to sound nice on paper.</p>
+                        </p>"Government giving money to poor people". Sounds nice on paper, but have  horrifying effect on economic.</p>
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (1)</button>
+                    </div>
+                </article>
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    </div>
+                    <div class="content">
+                        <p>currently writing nostr relay in go. i have come to understand that i have lots of skill issues.</p>
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (3)</button>
+                    </div>
+                </article>
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    </div>
+                    <div class="content">
+                        <p>you code for money<br>
+                        i code for skills<br><br>
+
+                        we are not the same
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (15)</button>
+                    </div>
+                </article>
+            </div>
+        </main>
+        <footer>
+            <p>
+                <strong>Source:</strong>
+                <a href="https://github.com/AnzenKodo/drift/engine">GitHub</a> |
+                <strong>Version:</strong> 0.1 |
+                <strong>License:</strong>
+                <a href="https://spdx.org/licenses/MIT">MIT</a>
+            </p>
+        </footer>
+        <!-- <script>
+            function dateNow() {
+                return Math.floor(Date.now() / 1000);
+            }
+            function hexToBytes(hex) {
+                return Uint8Array.from(
+                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+                );
+            }
+            function bytesToHex(bytes) {
+                return bytes.reduce(
+                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
+                )
+            }
+
+            async function getPublicKey() {
+                return await window.nostr.getPublicKey();
+            }
+
+            const relay = "ws://localhost:7447";
+            const socket = new WebSocket(relay);
+
+            // const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
+            // const sha256 = nobleSecp256k1.utils.sha256;
+            // // const privKey = myPrivKey;
+            // const privKey = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
+            // let pubKey = nobleSecp256k1.getPublicKey(privKey, true);
+            // pubKey = pubKey.substring(2);
+            // console.log(privKey);
+            const pubKey = "cbc6fc60139278ad2919647117d2dabbd55c27cb84e93fd4728701c05e022c37"
+
+            socket.addEventListener('open', async ( e ) => {
+                console.log("connected to " + relay);
+                const subId = bytesToHex(nobleSecp256k1.utils.randomPrivateKey()).substring(0, 16);
+                const filter  = { "authors": [ pubKey ] }
+                const subscription = [ "REQ", subId, filter ]
+                console.log('Subscription:', subscription);
+                socket.send(JSON.stringify(subscription));
+
+                socket.send(JSON.stringify(subscription));
+            });
+
+            async function sendPubNote() {
+                const pubKey = await getPublicKey();
+
+                const event = {
+                    "content": "Hello World!",
+                    "created_at": dateNow(),
+                    "kind": 1,
+                    "tags": [],
+                    "pubkey": pubKey
+                }
+
+                const signedEvent = await getSignedEvent(event);
+                console.log("signedEvent:", signedEvent);
+                socket.send(JSON.stringify(["EVENT", signedEvent]));
+            }
+
+            // socket.addEventListener('message', async function(message) {
+            //     const [ type, subId, event ] = JSON.parse(message.data);
+            //     const { kind, content } = event || {}
+            //     if (!event || event === true) return;
+            //     console.log('message:', event);
+            //     if (kind === 4) {
+            //         content = await decrypt(privKey, event.pubkey, content);
+            //     }
+            //     console.log('content:', content);
+            // });
+
+            async function getSignedEvent(event) {
+                return window.nostr.signEvent(event);
+                // var eventData = JSON.stringify([
+                //     0,
+                //     event['pubkey'],
+                //     event['create_at'],
+                //     event['kind'],
+                //     event['tags'],
+                //     event['content']
+                // ]);
+                // event.id = bytesToHex(
+                //     await sha256((new TextEncoder().encode(eventData)))
+                // );
+                // event.sig = await schnorr.sign(event.id, privateKey);
+                // return event;
+            }
+        </script> -->
+    </body>
+</html>
