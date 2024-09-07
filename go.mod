@@ -1,4 +1,4 @@
-module driftengine
+module drift-cli
 
 go 1.22.0
 
