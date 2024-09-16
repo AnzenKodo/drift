@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"strings"
-	"github.com/coder/websocket"
-	"fmt"
 )
 
 type Proj_Info struct {
@@ -53,29 +53,30 @@ func engineHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet && r.Header.Get("Upgrade") == "websocket" {
-	    c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-			InsecureSkipVerify: true,
-		})
-	    if err != nil {
-			log.Println(err)
-			return
-		}
-		defer c.CloseNow()
-        log.Println("[Engine WS]", ip, " connected ", ua)
+	    wsHandler(w, r, ip, ua)
 	} else {
-		log.Println("[Engine Site]", ip, r.Method, r.URL, ua)
+        log.Println("[Engine Site]", ip, r.Method, r.URL, ua)
 
-		if len(r.Header.Get("Upgrade")) > 0 {
-			http.Error(w, "Invalid Upgrade Header", 400)
-			return
-		}
+        if len(r.Header.Get("Upgrade")) > 0 {
+           	http.Error(w, "Invalid Upgrade Header", 400)
+           	return
+        }
 
-		accept := r.Header.Get("Accept")
-		if strings.Contains(accept, "application/nostr+json") {
-			// ShowNIP11(w)
-		} else {
-			showWebsite(w, r)
-		}
+        accept := r.Header.Get("Accept")
+
+        if strings.Contains(accept, "application/nostr+json") || strings.Contains(accept, "application/json") {
+            w.Header().Set("Content-Type", "application/nostr+json")
+            w.Header().Set("Access-Control-Allow-Origin", "*")
+
+            d, err := json.Marshal(config)
+            if err != nil {
+                fmt.Fprint(w, "{}")
+                return
+            }
+            w.Write(d)
+        } else {
+           	showWebsite(w, r)
+        }
 	}
 }
 
@@ -91,14 +92,14 @@ func main() {
 
     go func() {
         if !vrun {
-            fmt.Println("Serving " + engineInfo.name + " at https://localhost:" + eport)
+            fmt.Print("Serving " + engineInfo.name + " at http://localhost:" + eport, "\n\n")
             err := http.ListenAndServe(":" + eport, engineMux)
             log.Println("[Engine]", err)
         }
     }()
 
     if !erun {
-        fmt.Println("Serving " + viewInfo.name +" from `" + vpath + "` at https://localhost:" + vport)
+        fmt.Println("Serving " + viewInfo.name +" from `" + vpath + "` at http://localhost:" + vport)
         err := http.ListenAndServe(":" + vport, viewMux)
         log.Println("[View]", err)
     }

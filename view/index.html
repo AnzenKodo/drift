@@ -4,8 +4,6 @@
         <title>drift/view</title>
         <meta charset="UTF-8" />
         <meta name="color-scheme" content="dark light">
-        <!-- <script src="https://bundle.run/noble-secp256k1@1.2.14"></script> -->
-        <!-- <script src="https://bundle.run/browserify-cipher@1.0.1"></script> -->
         <style>
             *,::after,::before{box-sizing:border-box}html{line-height:1.15;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4}hr{height:0;color:inherit}abbr[title]{text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}::-moz-focus-inner{border-style:none;padding:0}:-moz-focusring{outline:1px dotted ButtonText}:-moz-ui-invalid{box-shadow:none}legend{padding:0}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}
             :root {
@@ -221,6 +219,8 @@
                 <a href="https://spdx.org/licenses/MIT">MIT</a>
             </p>
         </footer>
+        <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+        <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
         <script>
             function dateNow() {
                 return Math.floor(Date.now() / 1000);
@@ -241,7 +241,7 @@
             }
 
             const relay = "ws://localhost:7447";
-            const socket = new WebSocket(relay);
+            const ws = new WebSocket(relay);
 
             // const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
             // const sha256 = nobleSecp256k1.utils.sha256;
@@ -252,43 +252,44 @@
             // console.log(privKey);
             const pubKey = "cbc6fc60139278ad2919647117d2dabbd55c27cb84e93fd4728701c05e022c37"
 
-            socket.addEventListener('open', async ( e ) => {
+            ws.addEventListener('open', async ( e ) => {
                 console.log("connected to " + relay);
-                const subId = bytesToHex(nobleSecp256k1.utils.randomPrivateKey()).substring(0, 16);
-                const filter  = { "authors": [ pubKey ] }
-                const subscription = [ "REQ", subId, filter ]
-                console.log('Subscription:', subscription);
-                socket.send(JSON.stringify(subscription));
-
-                socket.send(JSON.stringify(subscription));
+                // const subId = bytesToHex(nobleSecp256k1.utils.randomPrivateKey()).substring(0, 16);
+                // const filter  = { "authors": [ pubKey ] };
+                // const subscription = [ "REQ", subId, filter ]
+                // console.log('Subscription:', subscription);
+                // socket.send(JSON.stringify(subscription));
+                // socket.send(JSON.stringify(subscription));
+                ws.send("EVENT {\"pubkey\": \"...\", \"content\": \"Hello Nostr!\", \"sig\": \"...\"}");
+                ws.send("REQ subscription_id");
             });
 
-            async function sendPubNote() {
-                const pubKey = await getPublicKey();
+            // async function sendPubNote() {
+            //     const pubKey = await getPublicKey();
 
-                const event = {
-                    "content": "Hello World!",
-                    "created_at": dateNow(),
-                    "kind": 1,
-                    "tags": [],
-                    "pubkey": pubKey
-                }
-
-                const signedEvent = await getSignedEvent(event);
-                console.log("signedEvent:", signedEvent);
-                socket.send(JSON.stringify(["EVENT", signedEvent]));
-            }
-
-            // socket.addEventListener('message', async function(message) {
-            //     const [ type, subId, event ] = JSON.parse(message.data);
-            //     const { kind, content } = event || {}
-            //     if (!event || event === true) return;
-            //     console.log('message:', event);
-            //     if (kind === 4) {
-            //         content = await decrypt(privKey, event.pubkey, content);
+            //     const event = {
+            //         "content": "Hello World!",
+            //         "created_at": dateNow(),
+            //         "kind": 1,
+            //         "tags": [],
+            //         "pubkey": pubKey
             //     }
-            //     console.log('content:', content);
-            // });
+
+            //     const signedEvent = await getSignedEvent(event);
+            //     console.log("signedEvent:", signedEvent);
+            //     socket.send(JSON.stringify(["EVENT", signedEvent]));
+            // }
+
+            ws.addEventListener('message', async function(message) {
+                const [ type, subId, event ] = JSON.parse(message.data);
+                const { kind, content } = event || {}
+                if (!event || event === true) return;
+                console.log('message:', event);
+                if (kind === 4) {
+                    content = await decrypt(privKey, event.pubkey, content);
+                }
+                console.log('content:', content);
+            });
 
             async function getSignedEvent(event) {
                 return window.nostr.signEvent(event);
