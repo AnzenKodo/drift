@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"log"
 )
 
 func showFavicon(w http.ResponseWriter, r *http.Request) {
@@ -12,7 +11,7 @@ func showFavicon(w http.ResponseWriter, r *http.Request) {
 
     img, err := base64.StdEncoding.DecodeString(faviconBase64)
     if err != nil {
-        log.Println(err)
+        pLog(LView, LError, "", err)
     }
 
     w.Write(img)

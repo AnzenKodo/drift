@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
 type Proj_Info struct {
@@ -40,13 +39,14 @@ var cliInfo = Proj_Info{
     desc: "cli for managing drift/engine & drift/view",
     repo: defaultInfo.repo,
     version: defaultInfo.version,
-    license: defaultInfo.license,
+	license: defaultInfo.license,
 }
 
 func engineHandler(w http.ResponseWriter, r *http.Request) {
     xff := r.Header.Get("X-Forwarded-For")
 	ua := r.Header.Get("User-Agent")
 	ip := strings.Split(xff, ",")[0]
+
 
 	if len(ip) < 1 {
 		ip, _, _ = net.SplitHostPort(r.RemoteAddr)
@@ -55,7 +55,7 @@ func engineHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet && r.Header.Get("Upgrade") == "websocket" {
 	    wsHandler(w, r, ip, ua)
 	} else {
-        log.Println("[Engine Site]", ip, r.Method, r.URL, ua)
+        pLog(LEng, LInfo, ip, r.Method, r.URL, ua)
 
         if len(r.Header.Get("Upgrade")) > 0 {
            	http.Error(w, "Invalid Upgrade Header", 400)
@@ -92,15 +92,15 @@ func main() {
 
     go func() {
         if !vrun {
-            fmt.Print("Serving " + engineInfo.name + " at http://localhost:" + eport, "\n\n")
+            pLog(LEng, LInfo, "Serving " + engineInfo.name + " at http://localhost:" + eport)
             err := http.ListenAndServe(":" + eport, engineMux)
-            log.Println("[Engine]", err)
+            pLog(LEng, LWarn, "", err)
         }
     }()
 
     if !erun {
-        fmt.Println("Serving " + viewInfo.name +" from `" + vpath + "` at http://localhost:" + vport)
+        pLog(LView, LInfo, "Serving " + viewInfo.name +" from `" + vpath + "` at http://localhost:" + vport)
         err := http.ListenAndServe(":" + vport, viewMux)
-        log.Println("[View]", err)
+        pLog(LView, LWarn, "", err)
     }
 }

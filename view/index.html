@@ -4,6 +4,7 @@
         <title>drift/view</title>
         <meta charset="UTF-8" />
         <meta name="color-scheme" content="dark light">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
             *,::after,::before{box-sizing:border-box}html{line-height:1.15;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4}hr{height:0;color:inherit}abbr[title]{text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}::-moz-focus-inner{border-style:none;padding:0}:-moz-focusring{outline:1px dotted ButtonText}:-moz-ui-invalid{box-shadow:none}legend{padding:0}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}
             :root {
@@ -14,16 +15,15 @@
                 outline: 1px double;
                 outline-offset: 1px;
             }
-            /* *::selection {} */
             body {
+                font-family: monospace;
                 font-size: 100%;
                 margin: .5rem;
                 background: black;
-                font-family: monospace;
-                display: grid;
                 grid-template-columns: 20rem auto;
-                grid-template-rows: 2rem auto;
+                grid-template-rows: 5rem auto;
                 justify-content: stretch;
+                display: grid;
                 grid-template-areas:
                   "nav main"
                   "aside main"
@@ -70,10 +70,10 @@
                 padding: 1% 2%;
                 background: transparent;
             }
-            textarea:hover {
+            textarea:hover, input:hover {
                 border-style: dashed;
             }
-            textarea:active {
+            textarea:active, input:active {
                 border-style: dotted;
             }
             #user_profile {
@@ -84,6 +84,14 @@
                   "profile username";
                 gap: 0 .5rem;
                 margin: 0rem 0 .6rem 0;
+            }
+            #logo:hover {
+                cursor: pointer;
+                filter: brightness(50%);
+            }
+            #logo:active {
+                border: dotted;
+                filter: brightness(75%);
             }
             #user_profile .profile_image {
                 grid-area: profile;
@@ -123,22 +131,69 @@
             #posts .content p {
                 margin-top: .3rem;
             }
+
+            video {
+                max-width: 100%;
+                min-width: 10rem;
+                margin-top: 1rem;
+            }
+            img {
+                max-width: 100%;
+                margin: .5rem 0;
+            }
         </style>
+        <script>
+            function dateNow() {
+                return Math.floor(Date.now() / 1000);
+            }
+            function hexToBytes(hex) {
+                return Uint8Array.from(
+                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+                );
+            }
+            function bytesToHex(bytes) {
+                return bytes.reduce(
+                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
+                )
+            }
+
+            async function getPublicKey() {
+                return await window.nostr.getPublicKey();
+            }
+        </script>
     </head>
     <body>
         <nav>
-            <h1 style="font-family: monospace; padding: 0; margin: 0;">
-                drift<strong style="color: #0089fc">/view</strong>
-            </h1>
+            <img src="./logo.png" alt="Logo" id="logo">
         </nav>
         <aside>
-            <div id="user_profile">
+            <div id="login" style="
+                border: 1px solid;
+                padding: .4rem .5rem .6rem .5rem;
+                margin-bottom: 1rem;
+            ">
+                <label>
+                    Private Key:
+                    <input type="password" name="private_key" id="pri_key" style="width: 85%; margin: .5em 0;">
+                </label>
+                <button style="width: 10%; padding: .2em;" id="toggle_pass" onclick="toggle_password(this)">🙈</button>
+                <button style="width: 27%;" onclick="gen_pri_key(this)">Genrate</button>
+                <button
+                    type="submit"
+                    style="color: var(--theme-color); width: 70%"
+                    onclick="login(this)">
+                    Login
+                </button>
+            </div>
+            <div id="user_profile" style="display: none;">
                 <a class="profile_image"><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
                 <span class="profile_name"><a>Aman</a> @AnzenKodo</span>
                 <span class="profile_status">Grinding hard</span>
             </div>
-            <textarea placeholder="Write your thoughts here."></textarea>
-            <button style="width: 100%">Post</button>
+            <div id="new_post" style="display: none;">
+                <textarea placeholder="Write your thoughts here."></textarea>
+                <button style="width: 100%">Post</button>
+            </div>
         </aside>
         <main>
             <div id="posts">
@@ -148,6 +203,44 @@
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    </div>
+                    <div class="content">
+                        <p>> opens spotify, searches "focus music"</br>
+                        > sees lofi slop</br>
+                        > opens yt, searches "460mm go bang!"</br>
+                        <video controls>
+                            <source src="vod.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        > focus mode on
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (3)</button>
+                    </div>
+                </article>
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Yesterday</time></a>
+                    </div>
+                    <div class="content">
+                        <p>Gonna slove this
+                        <img src="https://i1.sndcdn.com/artworks-P59I6SjPgHMVcjEI-jwGxDw-t500x500.jpg">
+                    </div>
+                    <div class="actions">
+                        <button class="actions_react">React</button>
+                        <button class="actions_comment">Comment (1)</button>
+                    </div>
+                </article>
+                <article>
+                    <a class="profile_image">
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                    </a>
+                    <div class="info">
+                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">12-Sep-2024</time></a>
                     </div>
                     <div class="content">
                         <p>"Victory did not come to the one who played by the rules; it came to the one who made the rules and imposed them on his enemy."<br>-- Genghis Khan</p>
@@ -222,63 +315,84 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
         <script>
-            function dateNow() {
-                return Math.floor(Date.now() / 1000);
-            }
-            function hexToBytes(hex) {
-                return Uint8Array.from(
-                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-                );
-            }
-            function bytesToHex(bytes) {
-                return bytes.reduce(
-                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
-                )
+            const login_input = document.querySelector("#pri_key");
+            const login_button = document.querySelector("#login");
+            const user_profile = document.querySelector("#user_profile");
+            const new_post = document.querySelector("#new_post");
+            const toggle_pass = document.querySelector("#toggle_pass");
+
+            function toggle_password(ele) {
+                const log_type = login_input.type;
+                if (log_type === "password") {
+                    login_input.type = "text";
+                    ele.textContent = "🐵";
+                }
+                if (log_type === "text") {
+                    login_input.type = "password";
+                    ele.textContent = "🙈";
+                }
             }
 
-            async function getPublicKey() {
-                return await window.nostr.getPublicKey();
+            function setupLogin() {
+                login_button.style.display = "none";
+                user_profile.style.display = "";
+                new_post.style.display = "";
+            }
+
+            if (localStorage.getItem("pri_key")) {
+                setupLogin();
+            }
+
+            function gen_pri_key(ele) {
+                const pri_key = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
+                login_input.value = pri_key;
+                login_input.type = "text";
+                toggle_pass.textContent = "🐵";
+            }
+            function login(ele) {
+                localStorage.setItem('pri_key', login_input.value);
+                setupLogin();
             }
 
             const relay = "ws://localhost:7447";
             const ws = new WebSocket(relay);
 
-            // const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
-            // const sha256 = nobleSecp256k1.utils.sha256;
+            const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
+            const sha256 = nobleSecp256k1.utils.sha256;
             // // const privKey = myPrivKey;
             // const privKey = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
             // let pubKey = nobleSecp256k1.getPublicKey(privKey, true);
             // pubKey = pubKey.substring(2);
             // console.log(privKey);
-            const pubKey = "cbc6fc60139278ad2919647117d2dabbd55c27cb84e93fd4728701c05e022c37"
+            const pubKey = "2569fea2bf122a9077cbfcdf0ff28916ad917055ddaf76e07a076df0eef99f37";
+            const privateKey = "c9301a29366b4bfc5735929b5cdc6670f22a86fddda06aae0a5e82ee2351764e";
 
             ws.addEventListener('open', async ( e ) => {
                 console.log("connected to " + relay);
-                // const subId = bytesToHex(nobleSecp256k1.utils.randomPrivateKey()).substring(0, 16);
-                // const filter  = { "authors": [ pubKey ] };
-                // const subscription = [ "REQ", subId, filter ]
-                // console.log('Subscription:', subscription);
-                // socket.send(JSON.stringify(subscription));
-                // socket.send(JSON.stringify(subscription));
-                ws.send("EVENT {\"pubkey\": \"...\", \"content\": \"Hello Nostr!\", \"sig\": \"...\"}");
-                ws.send("REQ subscription_id");
+                const subId = bytesToHex(
+                    nobleSecp256k1.utils.randomPrivateKey()
+                ).substring(0, 16);
+
+                const filter  = { "authors": [ pubKey ] };
+                const subscription = [ "REQ", subId, filter ]
+                console.log('Subscription:', subscription);
+                ws.send(JSON.stringify(subscription));
+                await sendPubNote();
             });
 
-            // async function sendPubNote() {
-            //     const pubKey = await getPublicKey();
+            async function sendPubNote() {
+                const event = {
+                    "content": "Hello World!",
+                    "created_at": dateNow(),
+                    "kind": 1,
+                    "tags": [],
+                    "pubkey": pubKey
+                }
 
-            //     const event = {
-            //         "content": "Hello World!",
-            //         "created_at": dateNow(),
-            //         "kind": 1,
-            //         "tags": [],
-            //         "pubkey": pubKey
-            //     }
-
-            //     const signedEvent = await getSignedEvent(event);
-            //     console.log("signedEvent:", signedEvent);
-            //     socket.send(JSON.stringify(["EVENT", signedEvent]));
-            // }
+                const signedEvent = await getSignedEvent(event);
+                console.log("signedEvent:", signedEvent);
+                ws.send(JSON.stringify(["EVENT", signedEvent]));
+            }
 
             ws.addEventListener('message', async function(message) {
                 const [ type, subId, event ] = JSON.parse(message.data);
@@ -292,20 +406,19 @@
             });
 
             async function getSignedEvent(event) {
-                return window.nostr.signEvent(event);
-                // var eventData = JSON.stringify([
-                //     0,
-                //     event['pubkey'],
-                //     event['create_at'],
-                //     event['kind'],
-                //     event['tags'],
-                //     event['content']
-                // ]);
-                // event.id = bytesToHex(
-                //     await sha256((new TextEncoder().encode(eventData)))
-                // );
-                // event.sig = await schnorr.sign(event.id, privateKey);
-                // return event;
+                var eventData = JSON.stringify([
+                    0,
+                    event['pubkey'],
+                    event['create_at'],
+                    event['kind'],
+                    event['tags'],
+                    event['content']
+                ]);
+                event.id = bytesToHex(
+                    await sha256((new TextEncoder().encode(eventData)))
+                );
+                event.sig = await schnorr.sign(event.id, privateKey);
+                return event;
             }
         </script>
     </body>

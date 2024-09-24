@@ -41,7 +41,7 @@ func cliHandler() (bool, string, bool, string, string) {
 
     if len(os.Args) > 1 {
         if os.Args[1][0] != '-' {
-            fmt.Fprint(os.Stderr, "flag provided but not defined: ", os.Args[1], "\n\n")
+            pLog(LCli, LWarn, "flag provided but not defined: ", os.Args[1])
             printHelp()
         }
     }
