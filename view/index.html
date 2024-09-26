@@ -20,16 +20,34 @@
                 font-size: 100%;
                 margin: .5rem;
                 background: black;
-                grid-template-columns: 20rem auto;
+                grid-template-columns: 17.5rem auto;
                 grid-template-rows: 5rem auto;
                 justify-content: stretch;
                 display: grid;
                 grid-template-areas:
-                  "nav main"
+                  "aside main"
                   "aside main"
                   ". footer";
                 justify-content: center;
             }
+            main {
+                grid-area: main;
+                width: 35rem;
+            }
+            aside {
+                position: sticky;
+                top: .5rem;
+                height: 90vh;
+                width: 17rem;
+                grid-area: aside;
+            }
+            footer {
+                grid-area: footer;
+                justify-self: center;
+            }
+
+            /* Elements */
+
             a {
                 color: var(--theme-color);
                 text-decoration: none;
@@ -42,26 +60,16 @@
                 color: var(--theme-color-dark);
             }
             button {
-                border: 1px solid;
+                border: .5px solid;
                 background: none;
                 cursor: pointer;
+
             }
             button:hover {
                 border-style: dashed;
             }
             button:active {
                 border-style: dotted;
-            }
-            main {
-                grid-area: main;
-                width: 35rem;
-            }
-            aside {
-                grid-area: aside;
-            }
-            footer {
-                grid-area: footer;
-                justify-self: center;
             }
             textarea {
                 width: 100%;
@@ -76,15 +84,13 @@
             textarea:active, input:active {
                 border-style: dotted;
             }
-            #user_profile {
-                display: grid;
-                grid-template-columns: 2rem auto;
-                grid-template-areas:
-                  "profile name"
-                  "profile username";
-                gap: 0 .5rem;
-                margin: 0rem 0 .6rem 0;
+            img {
+                max-width: 100%;
             }
+            select {
+                background: black;
+            }
+
             #logo:hover {
                 cursor: pointer;
                 filter: brightness(50%);
@@ -93,6 +99,15 @@
                 border: dotted;
                 filter: brightness(75%);
             }
+            /*#user_profile {
+                display: grid;
+                grid-template-columns: 2rem auto;
+                grid-template-areas:
+                  "profile name"
+                  "profile username";
+                gap: 0 .5rem;
+                margin: .6rem 0;
+            }
             #user_profile .profile_image {
                 grid-area: profile;
             }
@@ -100,111 +115,210 @@
                 width: 100%;
                 border-radius: 100%;
                 background: purple;
+            }*/
+
+            /* Account */
+
+            #account-options {
+                display: none;
+                flex-direction: column;
+                background-color: #000;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                border: .5px solid;
             }
-            #user_profile .profile_name {
-                /* align-self: end; */
+            #account-options.active {
+                display: flex;
             }
+            #account .account-option {
+                display: flex;
+                align-items: center;
+                padding: .4rem;
+                border-top: 1px solid #333;
+                color: white;
+            }
+
+            #account .account-option:hover {
+                background-color: #333;
+            }
+            #account .account-name {
+                margin: 0;
+                font-weight: bold;
+            }
+            #account img {
+                border-radius: 50%;
+                width: 2rem;
+                margin-right: 10px
+            }
+
+            /* Posts */
+
             #posts {
                 padding: 0rem .3rem;
             }
             #posts article {
-                display: grid;
-                grid-template-columns: 2rem auto;
-                grid-template-areas:
-                  "profile info"
-                  "profile content"
-                  "profile action";
-                grid-gap: 0 .5rem;
-                padding-bottom: 1rem;
+                margin-bottom: 1rem;
             }
-            #posts .profile_image {
-                grid-area: profile;
-            }
-            #posts .profile_image img {
+            #posts .post_profile {
+                display: flex;
+                flex-flow: row;
                 width: 100%;
+            }
+            #posts .post_profile_image {
+                margin-right: .3rem;
+            }
+            #posts .post_profile_image img {
+                width: 2rem;
                 border-radius: 100%;
             }
-            #posts .content {
-                grid-area: content;
-                line-height: 1.2rem;
+            #posts .post_profile_info {
+                display: flex;
+                flex-flow: column;
+                width: 15rem;
+                flex: 1;
             }
-            #posts .content p {
+            #posts .post_profile_info_1 {
+                display: flex;
+                justify-content: space-between;
+                margin: .1rem;
+                margin-bottom: .1rem
+            }
+            #posts .post_profile_info_1 time {
+                text-align: right;
+            }
+            #posts .post_content p {
+                line-height: 1.2rem;
+                margin-top: .3rem;
+                margin-bottom: .3rem;
+            }
+            #posts .post_content img {
+                display: block;
+                margin: 0rem auto .5rem auto;
+            }
+            #posts .post_content video {
+                max-width: 100%;
+                margin: 0 auto;
                 margin-top: .3rem;
             }
 
-            video {
-                max-width: 100%;
-                min-width: 10rem;
-                margin-top: 1rem;
-            }
-            img {
-                max-width: 100%;
+            div.spacer {
                 margin: .5rem 0;
             }
+            div.spacer-1rem {
+                margin: 1rem 0;
+            }
         </style>
-        <script>
-            function dateNow() {
-                return Math.floor(Date.now() / 1000);
-            }
-            function hexToBytes(hex) {
-                return Uint8Array.from(
-                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-                );
-            }
-            function bytesToHex(bytes) {
-                return bytes.reduce(
-                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
-                )
-            }
-
-            async function getPublicKey() {
-                return await window.nostr.getPublicKey();
-            }
-        </script>
     </head>
     <body>
-        <nav>
-            <img src="./logo.png" alt="Logo" id="logo">
-        </nav>
         <aside>
-            <div id="login" style="
-                border: 1px solid;
-                padding: .4rem .5rem .6rem .5rem;
-                margin-bottom: 1rem;
-            ">
+            <img src="./logo.png" alt="Logo" id="logo">
+
+            <div class="spacer"></div>
+
+            <div id="login" style="border: 1px solid; padding: .4rem .5rem .6rem .5rem;">
                 <label>
-                    Private Key:
-                    <input type="password" name="private_key" id="pri_key" style="width: 85%; margin: .5em 0;">
+                    Private Key: <input type="password" name="private_key" id="pri_key" style="width: 86%; margin: .5em 0;">
                 </label>
                 <button style="width: 10%; padding: .2em;" id="toggle_pass" onclick="toggle_password(this)">🙈</button>
-                <button style="width: 27%;" onclick="gen_pri_key(this)">Genrate</button>
-                <button
-                    type="submit"
-                    style="color: var(--theme-color); width: 70%"
-                    onclick="login(this)">
-                    Login
-                </button>
+                <button style="width: 30%;" onclick="gen_pri_key(this)">Generate</button>
+                <button type="submit" style="color: var(--theme-color); width: 66%" onclick="login(this)">Login</button>
             </div>
-            <div id="user_profile" style="display: none;">
-                <a class="profile_image"><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
-                <span class="profile_name"><a>Aman</a> @AnzenKodo</span>
-                <span class="profile_status">Grinding hard</span>
+
+
+            <div id="account" style="display: none; position: relative; border: .5px solid; cursor: pointer;">
+                <div id="account-toggle" style="display: flex; padding: .4rem .4rem; position: relative; flex-direction: column;">
+                    <div class="account-main" style="display:flex">
+                        <img src="https://i.pinimg.com/564x/c0/06/5c/c0065cbde31f0a768ed1fe201cc72ea1.jpg" alt="Profile Picture">
+                        <div style="flex-grow: 1">
+                            <p class="account-name" style="margin: 0;"><a>Aman Varma</a></p>
+                            <small style="margin: 0;">@AnzenKodo</small>
+                        </div>
+                        <div style="font-size: 20px; margin-left: 10px;">&#9660;</div>
+                    </div>
+                    <small style="margin-top: 5px;">grinding hard in mom's basement.</small>
+                </div>
+
+                <div id="account-options">
+                    <div class="account-option">
+                        <img src="https://i.pinimg.com/564x/c0/06/5c/c0065cbde31f0a768ed1fe201cc72ea1.jpg" alt="Profile Picture">
+                        <div class="account-info">
+                            <p class="account-name"><a>Krishna Yadav</a></p>
+                            <small>@kyadav</small>
+                        </div>
+                    </div>
+
+                    <div class="account-option">
+                        <img src="https://i.pinimg.com/564x/c0/06/5c/c0065cbde31f0a768ed1fe201cc72ea1.jpg" alt="Profile Picture">
+                        <div class="account-info">
+                            <p class="account-name"><a>Nagesh Giri</a></p>
+                            <small>@Nagesh</small>
+                        </div>
+                    </div>
+
+                    <div class="account-option">
+                        <div style="border: 1px solid; border-radius: 50%; padding: .5rem .7rem; margin-right: 10px;">+</div>
+                        <div class="account-info">
+                            <p class="account-name">Add New Account</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="new_post" style="display: none;">
-                <textarea placeholder="Write your thoughts here."></textarea>
+
+            <div class="spacer"></div>
+
+
+            <footer style="font-size: .6rem; text-align: center; line-height: 1rem;">
+                <p>
+                    <strong>Source:</strong> <a href="https://github.com/AnzenKodo/drift">GitHub</a> |
+                    <strong>Version:</strong> 0.1 |
+                    <strong>License:</strong> <a href="https://spdx.org/licenses/MIT">MIT</a>
+                    Made with ❤ in <strong>Earth</strong>
+                </p>
+            </footer>
+        </aside>
+
+        <main>
+            <div id="new_post">
+                <style>
+                    #post_textbox:empty:before {
+                        content: attr(placeholder);
+                        color: #888;
+                    }
+                </style>
+                <div contenteditable="true" placeholder="Start typing here..."  id="post_textbox" style="height: 6rem; font-size: .6rem; border: 1px solid gray; padding: .5rem; resize: none; overflow-x: auto; white-space: pre-wrap;"></div>
+                <script>
+                    const postTextbox = document.getElementById('post_textbox');
+
+                    postTextbox.addEventListener('input', function() {
+                        postTextbox.style.height = '6rem';
+                        if (postTextbox.scrollHeight <= 500) {
+                            postTextbox.style.height = postTextbox.scrollHeight + 'px';
+                        }
+                    });
+                </script>
                 <button style="width: 100%">Post</button>
             </div>
-        </aside>
-        <main>
+
+            <div class="spacer-1rem"></div>
+
             <div id="posts">
                 <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
+                    <div class="post_profile">
+                        <div class="post_profile_image">
+                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
+                        </div>
+                        <div class="post_profile_info">
+                            <div class="post_profile_info_1">
+                                <a><span class="name">Aman</span></a> <time class="time">10/23/2012・02:32 PM</time></a>
+                            </div>
+                            <div class="post_profile_info_2">
+                                <small>@AnzenKodo</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="content">
+                    <div class="post_content">
                         <p>> opens spotify, searches "focus music"</br>
                         > sees lofi slop</br>
                         > opens yt, searches "460mm go bang!"</br>
@@ -215,20 +329,64 @@
                         > focus mode on
                     </div>
                     <div class="actions">
-                        <button class="actions_react">React</button>
                         <button class="actions_comment">Comment (3)</button>
+                        <button class="actions_react">React</button>
+                    </div>
+                </article>
+                <p>
+                <article>
+                    <div class="post_profile">
+                        <div class="post_profile_image">
+                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
+                        </div>
+                        <div class="post_profile_info">
+                            <div class="post_profile_info_1">
+                                <a><span class="name">Aman</span></a> • <time class="time">Today</time></a>
+                            </div>
+                            <div class="post_profile_info_2">
+                                <span>@AnzenKodo</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post_content">
+                        <p>Gonna slove this</p>
+                        <img src="https://i1.sndcdn.com/artworks-P59I6SjPgHMVcjEI-jwGxDw-t500x500.jpg">
+                    </div>
+                    <div class="actions">
+                        <button class="actions_comment">Comment (3)</button>
+                        <button class="actions_react">React</button>
+                    </div>
+                </article>
+                <article>
+                    <div class="posts_profile">
+                        <div class="posts_profile_image">
+                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
+                        </div>
+                        <div class="posts_profile_info">
+                            <div>
+                                <a><span class="name">Aman</span></a> • <time class="time">Today</time></a>
+                            </div>
+                            <div>
+                                <span class="username">@AnzenKodo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <div class="content">
+
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="actions_comment">Comment (3)</button>
+                        <button class="actions_react">React</button>
                     </div>
                 </article>
                 <article>
                     <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Yesterday</time></a>
-                    </div>
-                    <div class="content">
-                        <p>Gonna slove this
-                        <img src="https://i1.sndcdn.com/artworks-P59I6SjPgHMVcjEI-jwGxDw-t500x500.jpg">
                     </div>
                     <div class="actions">
                         <button class="actions_react">React</button>
@@ -237,7 +395,7 @@
                 </article>
                 <article>
                     <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">12-Sep-2024</time></a>
@@ -253,7 +411,7 @@
                 </article>
                 <article>
                     <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
@@ -269,7 +427,7 @@
                 </article>
                 <article>
                     <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
@@ -284,7 +442,7 @@
                 </article>
                 <article>
                     <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" style="background: yellow" />
+                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
                     </a>
                     <div class="info">
                         <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
@@ -303,23 +461,34 @@
                 </article>
             </div>
         </main>
-        <footer>
-            <p>
-                <strong>Source:</strong>
-                <a href="https://github.com/AnzenKodo/drift/engine">GitHub</a> |
-                <strong>Version:</strong> 0.1 |
-                <strong>License:</strong>
-                <a href="https://spdx.org/licenses/MIT">MIT</a>
-            </p>
-        </footer>
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
         <script>
             const login_input = document.querySelector("#pri_key");
             const login_button = document.querySelector("#login");
-            const user_profile = document.querySelector("#user_profile");
             const new_post = document.querySelector("#new_post");
             const toggle_pass = document.querySelector("#toggle_pass");
+            const post_textbox = document.querySelector("#post_textbox");
+            const accountToggle = document.getElementById('account-toggle');
+            const accountOptions = document.getElementById('account-options');
+            const account = document.getElementById('account');
+
+            function dateNow() {
+                return Math.floor(Date.now() / 1000);
+            }
+            function hexToBytes(hex) {
+                return Uint8Array.from(
+                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+                );
+            }
+            function bytesToHex(bytes) {
+                return bytes.reduce(
+                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
+                )
+            }
+            async function getPublicKey() {
+                return await window.nostr.getPublicKey();
+            }
 
             function toggle_password(ele) {
                 const log_type = login_input.type;
@@ -335,7 +504,7 @@
 
             function setupLogin() {
                 login_button.style.display = "none";
-                user_profile.style.display = "";
+                account.style.display = "";
                 new_post.style.display = "";
             }
 
@@ -420,6 +589,64 @@
                 event.sig = await schnorr.sign(event.id, privateKey);
                 return event;
             }
+
+            //==============================================================
+
+            accountToggle.addEventListener('click', function() {
+                accountOptions.classList.toggle('active');
+            });
+
+            post_textbox.addEventListener("paste", function(e) {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData)
+                    .getData('text');
+                document.execCommand("insertText", false, text);
+            });
+            post_textbox.addEventListener('keydown', function(e) {
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                const selectedText = range.toString();
+
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const tabSpace = "    ";
+                    const tabNode = document
+                        .createTextNode("\u00a0\u00a0\u00a0\u00a0");
+
+                    // Insert the tab character at the current cursor position
+                    range.insertNode(tabNode);
+
+                    // Move the cursor after the inserted tab
+                    range.setStartAfter(tabNode);
+                    range.setEndAfter(tabNode);
+
+                    // Clear existing selections and apply the new range
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+
+                }
+                if (e.key === 'b' && e.ctrlKey) {
+                    e.preventDefault();
+
+                    document.execCommand('bold');
+
+                    if (selectedText.length > 0) {
+                        const span = document.createElement('span');
+                        span.innerHTML = `**${selectedText}**`;
+
+                        // Replace the selected text with the new span
+                        range.deleteContents();
+                        // range.insertNode(span);
+
+                        // Set the selection back to the newly inserted content
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                }
+                if (e.ctrlKey && e.key === "Enter") {
+                    console.log("Post")
+                }
+            });
         </script>
     </body>
 </html>
