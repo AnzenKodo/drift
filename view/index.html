@@ -10,28 +10,31 @@
             :root {
                 --theme-color: #8AC9FF;
                 --theme-color-dark: color-mix(in srgb,var(--theme-color),#000 30%);
+                --background-color: #000;
+                --foreground-color: #fff;
+                --spacing: .6rem;
+                --border: .5px solid gray;
+                scrollbar-color: var(--foreground-color) var(--background-color);
             }
             *:focus {
                 outline: 1px double;
                 outline-offset: 1px;
             }
+            *::-webkit-scrollbar-track {
+                background: var(--background-color);
+            }
+            *::-webkit-scrollbar-thumb {
+                background-color: #888;
+            }
             body {
                 font-family: monospace;
                 font-size: 100%;
-                margin: .5rem;
                 background: black;
-                grid-template-columns: 17.5rem auto;
-                grid-template-rows: 5rem auto;
-                justify-content: stretch;
-                display: grid;
-                grid-template-areas:
-                  "aside main"
-                  "aside main"
-                  ". footer";
+                display: flex;
+                gap: var(--spacing);
                 justify-content: center;
             }
             main {
-                grid-area: main;
                 width: 35rem;
             }
             aside {
@@ -39,7 +42,6 @@
                 top: .5rem;
                 height: 90vh;
                 width: 17rem;
-                grid-area: aside;
             }
             footer {
                 grid-area: footer;
@@ -86,6 +88,7 @@
             }
             img {
                 max-width: 100%;
+                display: block;
             }
             select {
                 background: black;
@@ -99,23 +102,6 @@
                 border: dotted;
                 filter: brightness(75%);
             }
-            /*#user_profile {
-                display: grid;
-                grid-template-columns: 2rem auto;
-                grid-template-areas:
-                  "profile name"
-                  "profile username";
-                gap: 0 .5rem;
-                margin: .6rem 0;
-            }
-            #user_profile .profile_image {
-                grid-area: profile;
-            }
-            #user_profile .profile_image img {
-                width: 100%;
-                border-radius: 100%;
-                background: purple;
-            }*/
 
             /* Account */
 
@@ -127,7 +113,7 @@
                 top: 100%;
                 left: 0;
                 width: 100%;
-                border: .5px solid;
+                border: .5px solid gray;
             }
             #account-options.active {
                 display: flex;
@@ -155,11 +141,10 @@
 
             /* Posts */
 
-            #posts {
-                padding: 0rem .3rem;
-            }
             #posts article {
-                margin-bottom: 1rem;
+                border: var(--border);
+                padding: .5rem .5rem;
+                margin-bottom: var(--spacing);
             }
             #posts .post_profile {
                 display: flex;
@@ -203,31 +188,95 @@
                 margin-top: .3rem;
             }
 
+            .border {
+                border: var(--border);
+            }
+            .margin-btm {
+                margin-bottom: var(--spacing);
+            }
+
             div.spacer {
-                margin: .5rem 0;
+                margin:  0;
             }
             div.spacer-1rem {
                 margin: 1rem 0;
             }
         </style>
+        <script>
+            function ele_get(query) {
+                return document.querySelector(query);
+            }
+            function hexToBytes(hex) {
+                return Uint8Array.from(
+                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+                );
+            }
+            function bytesToHex(bytes) {
+                return bytes.reduce(
+                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
+                )
+            }
+        </script>
     </head>
     <body>
         <aside>
-            <img src="./logo.png" alt="Logo" id="logo">
+            <img src="./logo.png" alt="Logo" id="logo" class="border margin-btm">
 
-            <div class="spacer"></div>
-
-            <div id="login" style="border: 1px solid; padding: .4rem .5rem .6rem .5rem;">
+            <div id="login" class="border margin-btm" style="padding: .4rem .5rem .6rem .5rem;">
                 <label>
-                    Private Key: <input type="password" name="private_key" id="pri_key" style="width: 86%; margin: .5em 0;">
+                    <span style="display: block">Private Key:</span>
+                    <input type="password" name="private_key" id="pri_key" style="width: 60%; margin: .5em 0;">
                 </label>
+                <button style="width: 10%; padding: .2em" onclick="">📋</button>
+                <button style="width: 10%; padding: .2em" onclick="generate_qr(this)">🔳</button>
                 <button style="width: 10%; padding: .2em;" id="toggle_pass" onclick="toggle_password(this)">🙈</button>
+                <div id="login_qr"></div>
                 <button style="width: 30%;" onclick="gen_pri_key(this)">Generate</button>
                 <button type="submit" style="color: var(--theme-color); width: 66%" onclick="login(this)">Login</button>
+                <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+                <script>
+                    function generate_qr(ele) {
+                        const pri_key = ele_get("#pri_key").value;
+                        if (!pri_key) { return }
+
+                        const img = ele_get("#login_qr img")
+                        if  (img) { img.remove() }
+
+                        new QRCode(ele_get("#login_qr"), pri_key);
+                    }
+                    function toggle_password(ele) {
+                        const pri_key = ele_get("#pri_key");
+                        const log_type = pri_key.type;
+                        if (log_type === "password") {
+                            pri_key.type = "text";
+                            ele.textContent = "🐵";
+                        }
+                        if (log_type === "text") {
+                            pri_key.type = "password";
+                            ele.textContent = "🙈";
+                        }
+                     }
+                    function gen_pri_key(ele) {
+                        const pri_key = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
+                        ele_get("#pri_key").value = pri_key;
+                        ele_get("#pri_key").type = "text";
+                        ele_get("#toggle_pass").textContent = "🐵";
+                    }
+                    function login(ele) {
+                        localStorage.setItem('pri_key', login_input.value);
+                        setupLogin();
+                    }
+                </script>
+                <style>
+                    #login_qr img {
+                        padding: .5rem;
+                        background: white;
+                        margin-bottom: .5rem;
+                    }
+                </style>
             </div>
 
-
-            <div id="account" style="display: none; position: relative; border: .5px solid; cursor: pointer;">
+            <div id="account" style="display: none; position: relative; border: .5px solid gray; cursor: pointer; margin-bottom: .6rem"">
                 <div id="account-toggle" style="display: flex; padding: .4rem .4rem; position: relative; flex-direction: column;">
                     <div class="account-main" style="display:flex">
                         <img src="https://i.pinimg.com/564x/c0/06/5c/c0065cbde31f0a768ed1fe201cc72ea1.jpg" alt="Profile Picture">
@@ -266,42 +315,87 @@
                 </div>
             </div>
 
-            <div class="spacer"></div>
-
-
-            <footer style="font-size: .6rem; text-align: center; line-height: 1rem;">
-                <p>
+            <footer class="border" style="font-size: .6rem; text-align: center; line-height: 1rem; padding: .2rem 0">
+                <p style="margin: 0">
                     <strong>Source:</strong> <a href="https://github.com/AnzenKodo/drift">GitHub</a> |
                     <strong>Version:</strong> 0.1 |
                     <strong>License:</strong> <a href="https://spdx.org/licenses/MIT">MIT</a>
-                    Made with ❤ in <strong>Earth</strong>
+                    Made with ❤ in <strong>NalaSopara</strong>
                 </p>
             </footer>
         </aside>
 
         <main>
-            <div id="new_post">
+            <div id="new_post" class="margin-btm">
                 <style>
-                    #post_textbox:empty:before {
+                    #new_post_textbox:empty:before {
                         content: attr(placeholder);
                         color: #888;
                     }
                 </style>
-                <div contenteditable="true" placeholder="Start typing here..."  id="post_textbox" style="height: 6rem; font-size: .6rem; border: 1px solid gray; padding: .5rem; resize: none; overflow-x: auto; white-space: pre-wrap;"></div>
+                <div contenteditable="true" placeholder="Start typing here..."  id="new_post_textbox" class="border" style="height: 6rem; font-size: .6rem; padding: .5rem; resize: none; overflow-x: auto; white-space: pre-wrap;"></div>
                 <script>
-                    const postTextbox = document.getElementById('post_textbox');
+                    const new_post_textbox = document.getElementById('new_post_textbox');
 
-                    postTextbox.addEventListener('input', function() {
-                        postTextbox.style.height = '6rem';
-                        if (postTextbox.scrollHeight <= 500) {
-                            postTextbox.style.height = postTextbox.scrollHeight + 'px';
+                    new_post_textbox.addEventListener('input', function() {
+                        new_post_textbox.style.height = '6rem';
+                        new_post_textbox.style.height = new_post_textbox.scrollHeight + 'px';
+                    });
+
+                    new_post_textbox.addEventListener("paste", function(e) {
+                        e.preventDefault();
+                        const text = (e.clipboardData || window.clipboardData).getData('text');
+                        document.execCommand("insertText", false, text);
+                    });
+
+                    new_post_textbox.addEventListener('keydown', function(e) {
+                        const selection = window.getSelection();
+                        const range = selection.getRangeAt(0);
+                        const selectedText = range.toString();
+
+                        if (e.key === 'Tab') {
+                            e.preventDefault();
+                            const tabSpace = "    ";
+                            const tabNode = document
+                                .createTextNode("\u00a0\u00a0\u00a0\u00a0");
+
+                            // Insert the tab character at the current cursor position
+                            range.insertNode(tabNode);
+
+                            // Move the cursor after the inserted tab
+                            range.setStartAfter(tabNode);
+                            range.setEndAfter(tabNode);
+
+                            // Clear existing selections and apply the new range
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+
+                        }
+                        if (e.key === 'b' && e.ctrlKey) {
+                            e.preventDefault();
+
+                            document.execCommand('bold');
+
+                            if (selectedText.length > 0) {
+                                const span = document.createElement('span');
+                                span.innerHTML = `**${selectedText}**`;
+
+                                // Replace the selected text with the new span
+                                range.deleteContents();
+                                // range.insertNode(span);
+
+                                // Set the selection back to the newly inserted content
+                                selection.removeAllRanges();
+                                selection.addRange(range);
+                            }
+                        }
+                        if (e.ctrlKey && e.key === "Enter") {
+                            console.log("Post")
                         }
                     });
                 </script>
                 <button style="width: 100%">Post</button>
             </div>
-
-            <div class="spacer-1rem"></div>
 
             <div id="posts">
                 <article>
@@ -333,7 +427,6 @@
                         <button class="actions_react">React</button>
                     </div>
                 </article>
-                <p>
                 <article>
                     <div class="post_profile">
                         <div class="post_profile_image">
@@ -464,6 +557,15 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
         <script>
+            const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
+            const sha256 = nobleSecp256k1.utils.sha256;
+
+            let pri_key = localStorage.getItem("pri_key");
+            let pub_key = get_pub_key(pri_key);
+
+            const relay = "ws://cfrelay.haorendashu.workers.dev";
+            const ws = new WebSocket(relay);
+
             const login_input = document.querySelector("#pri_key");
             const login_button = document.querySelector("#login");
             const new_post = document.querySelector("#new_post");
@@ -472,34 +574,11 @@
             const accountToggle = document.getElementById('account-toggle');
             const accountOptions = document.getElementById('account-options');
             const account = document.getElementById('account');
-
             function dateNow() {
                 return Math.floor(Date.now() / 1000);
             }
-            function hexToBytes(hex) {
-                return Uint8Array.from(
-                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-                );
-            }
-            function bytesToHex(bytes) {
-                return bytes.reduce(
-                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
-                )
-            }
             async function getPublicKey() {
                 return await window.nostr.getPublicKey();
-            }
-
-            function toggle_password(ele) {
-                const log_type = login_input.type;
-                if (log_type === "password") {
-                    login_input.type = "text";
-                    ele.textContent = "🐵";
-                }
-                if (log_type === "text") {
-                    login_input.type = "password";
-                    ele.textContent = "🙈";
-                }
             }
 
             function setupLogin() {
@@ -510,44 +589,39 @@
 
             if (localStorage.getItem("pri_key")) {
                 setupLogin();
+                login()
+            } else {
+                not_login();
             }
 
-            function gen_pri_key(ele) {
-                const pri_key = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
-                login_input.value = pri_key;
-                login_input.type = "text";
-                toggle_pass.textContent = "🐵";
-            }
-            function login(ele) {
-                localStorage.setItem('pri_key', login_input.value);
-                setupLogin();
+            function not_login() {
             }
 
-            const relay = "ws://localhost:7447";
-            const ws = new WebSocket(relay);
+            function get_pub_key(pri_key) {
+                return nobleSecp256k1.getPublicKey(pri_key, true).substring(2);
+            }
 
-            const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
-            const sha256 = nobleSecp256k1.utils.sha256;
-            // // const privKey = myPrivKey;
-            // const privKey = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
-            // let pubKey = nobleSecp256k1.getPublicKey(privKey, true);
-            // pubKey = pubKey.substring(2);
-            // console.log(privKey);
-            const pubKey = "2569fea2bf122a9077cbfcdf0ff28916ad917055ddaf76e07a076df0eef99f37";
-            const privateKey = "c9301a29366b4bfc5735929b5cdc6670f22a86fddda06aae0a5e82ee2351764e";
+            async function login() {
 
-            ws.addEventListener('open', async ( e ) => {
-                console.log("connected to " + relay);
-                const subId = bytesToHex(
-                    nobleSecp256k1.utils.randomPrivateKey()
-                ).substring(0, 16);
+                pri_key = localStorage.getItem("pri_key");
+                pub_key = get_pub_key(pri_key);
 
-                const filter  = { "authors": [ pubKey ] };
-                const subscription = [ "REQ", subId, filter ]
-                console.log('Subscription:', subscription);
-                ws.send(JSON.stringify(subscription));
-                await sendPubNote();
-            });
+                ws.addEventListener('open', async (e) => {
+                    console.log("connected to " + relay);
+                    const sub_id = bytesToHex(
+                        nobleSecp256k1.utils.randomPrivateKey()
+                    ).substring(0, 16);
+
+                    const filter  = { "authors": [ pub_key ] };
+                    const subscription = [ "REQ", sub_id, filter ]
+                    console.log('Subscription:', subscription);
+                    ws.send(JSON.stringify(subscription));
+                });
+
+                ele_get("#new_post_textbox").addEventListener("click", async () => {
+                    await sendPubNote();
+                });
+            }
 
             async function sendPubNote() {
                 const event = {
@@ -555,7 +629,7 @@
                     "created_at": dateNow(),
                     "kind": 1,
                     "tags": [],
-                    "pubkey": pubKey
+                    "pubkey": pub_key,
                 }
 
                 const signedEvent = await getSignedEvent(event);
@@ -563,16 +637,17 @@
                 ws.send(JSON.stringify(["EVENT", signedEvent]));
             }
 
-            ws.addEventListener('message', async function(message) {
-                const [ type, subId, event ] = JSON.parse(message.data);
-                const { kind, content } = event || {}
-                if (!event || event === true) return;
-                console.log('message:', event);
-                if (kind === 4) {
-                    content = await decrypt(privKey, event.pubkey, content);
-                }
-                console.log('content:', content);
-            });
+
+            // ws.addEventListener('message', async function(message) {
+            //     const [ type, subId, event ] = JSON.parse(message.data);
+            //     const { kind, content } = event || {}
+            //     if (!event || event === true) return;
+            //     console.log('message:', event);
+            //     if (kind === 4) {
+            //         content = await decrypt(privKey, event.pubkey, content);
+            //     }
+            //     console.log('content:', content);
+            // });
 
             async function getSignedEvent(event) {
                 var eventData = JSON.stringify([
@@ -586,7 +661,7 @@
                 event.id = bytesToHex(
                     await sha256((new TextEncoder().encode(eventData)))
                 );
-                event.sig = await schnorr.sign(event.id, privateKey);
+                event.sig = await schnorr.sign(event.id, pri_key);
                 return event;
             }
 
@@ -594,58 +669,6 @@
 
             accountToggle.addEventListener('click', function() {
                 accountOptions.classList.toggle('active');
-            });
-
-            post_textbox.addEventListener("paste", function(e) {
-                e.preventDefault();
-                const text = (e.clipboardData || window.clipboardData)
-                    .getData('text');
-                document.execCommand("insertText", false, text);
-            });
-            post_textbox.addEventListener('keydown', function(e) {
-                const selection = window.getSelection();
-                const range = selection.getRangeAt(0);
-                const selectedText = range.toString();
-
-                if (e.key === 'Tab') {
-                    e.preventDefault();
-                    const tabSpace = "    ";
-                    const tabNode = document
-                        .createTextNode("\u00a0\u00a0\u00a0\u00a0");
-
-                    // Insert the tab character at the current cursor position
-                    range.insertNode(tabNode);
-
-                    // Move the cursor after the inserted tab
-                    range.setStartAfter(tabNode);
-                    range.setEndAfter(tabNode);
-
-                    // Clear existing selections and apply the new range
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-
-                }
-                if (e.key === 'b' && e.ctrlKey) {
-                    e.preventDefault();
-
-                    document.execCommand('bold');
-
-                    if (selectedText.length > 0) {
-                        const span = document.createElement('span');
-                        span.innerHTML = `**${selectedText}**`;
-
-                        // Replace the selected text with the new span
-                        range.deleteContents();
-                        // range.insertNode(span);
-
-                        // Set the selection back to the newly inserted content
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    }
-                }
-                if (e.ctrlKey && e.key === "Enter") {
-                    console.log("Post")
-                }
             });
         </script>
     </body>
