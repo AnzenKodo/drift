@@ -1,19 +1,25 @@
 <!doctype html>
 <html>
     <head>
-        <title>drift/view</title>
+        <title>DriftView</title>
         <meta charset="UTF-8" />
         <meta name="color-scheme" content="dark light">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
+            @import url(https://fonts.bunny.net/css?family=jetbrains-mono:300,300i,400,400i,800,800i);
+
             *,::after,::before{box-sizing:border-box}html{line-height:1.15;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4}hr{height:0;color:inherit}abbr[title]{text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}::-moz-focus-inner{border-style:none;padding:0}:-moz-focusring{outline:1px dotted ButtonText}:-moz-ui-invalid{box-shadow:none}legend{padding:0}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}
             :root {
                 --theme-color: #8AC9FF;
                 --theme-color-dark: color-mix(in srgb,var(--theme-color),#000 30%);
                 --background-color: #000;
                 --foreground-color: #fff;
-                --spacing: .6rem;
+                --spacing: 1rem;
+
                 --border: .5px solid gray;
+                --border-hover: 1px dashed;
+                --border-focus: 1px dotted;
+
                 scrollbar-color: var(--foreground-color) var(--background-color);
             }
             *:focus {
@@ -27,12 +33,13 @@
                 background-color: #888;
             }
             body {
-                font-family: monospace;
-                font-size: 100%;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 90%;
                 background: black;
                 display: flex;
                 gap: var(--spacing);
                 justify-content: center;
+                word-break: break-word;
             }
             main {
                 width: 35rem;
@@ -65,7 +72,8 @@
                 border: .5px solid;
                 background: none;
                 cursor: pointer;
-
+                padding: .2rem;
+                font-weight: bold;
             }
             button:hover {
                 border-style: dashed;
@@ -80,12 +88,12 @@
                 padding: 1% 2%;
                 background: transparent;
             }
-            textarea:hover, input:hover {
+            /*textarea:hover, input:hover {
                 border-style: dashed;
             }
             textarea:active, input:active {
                 border-style: dotted;
-            }
+            }*/
             img {
                 max-width: 100%;
                 display: block;
@@ -139,101 +147,56 @@
                 margin-right: 10px
             }
 
-            /* Posts */
-
-            #posts article {
-                border: var(--border);
-                padding: .5rem .5rem;
-                margin-bottom: var(--spacing);
-            }
-            #posts .post_profile {
-                display: flex;
-                flex-flow: row;
-                width: 100%;
-            }
-            #posts .post_profile_image {
-                margin-right: .3rem;
-            }
-            #posts .post_profile_image img {
-                width: 2rem;
-                border-radius: 100%;
-            }
-            #posts .post_profile_info {
-                display: flex;
-                flex-flow: column;
-                width: 15rem;
-                flex: 1;
-            }
-            #posts .post_profile_info_1 {
-                display: flex;
-                justify-content: space-between;
-                margin: .1rem;
-                margin-bottom: .1rem
-            }
-            #posts .post_profile_info_1 time {
-                text-align: right;
-            }
-            #posts .post_content p {
-                line-height: 1.2rem;
-                margin-top: .3rem;
-                margin-bottom: .3rem;
-            }
-            #posts .post_content img {
-                display: block;
-                margin: 0rem auto .5rem auto;
-            }
-            #posts .post_content video {
-                max-width: 100%;
-                margin: 0 auto;
-                margin-top: .3rem;
-            }
-
             .border {
                 border: var(--border);
+            }
+            .border-click {
+                border: 1px solid;
+            }
+            .border-click:hover {
+                border: var(--border-hover);
+            }
+            .border-click:focus {
+                border: var(--border-focus);
+            }
+            .border-click:active {
+                border: var(--border-focus);
             }
             .margin-btm {
                 margin-bottom: var(--spacing);
             }
-
-            div.spacer {
-                margin:  0;
-            }
-            div.spacer-1rem {
-                margin: 1rem 0;
-            }
         </style>
+        <script src="js/ecdh.js"></script>
+        <script src="js/cipher.js"></script>
+        <script src="js/md.js"></script>
+        <script src="js/purify.js"></script>
         <script>
-            function ele_get(query) {
-                return document.querySelector(query);
-            }
-            function hexToBytes(hex) {
-                return Uint8Array.from(
-                    hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-                );
-            }
-            function bytesToHex(bytes) {
-                return bytes.reduce(
-                    (str, byte) => str + byte.toString(16).padStart(2, "0"), ""
-                )
-            }
+            const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
+            const sha256 = nobleSecp256k1.utils.sha256;
+
+            const relay = "wss://nos.lol";
+            const ws = new WebSocket(relay);
         </script>
+        <script src="js/utils.js"></script>
     </head>
     <body>
         <aside>
-            <img src="./logo.png" alt="Logo" id="logo" class="border margin-btm">
+            <img src="./logo.png" alt="Logo" id="logo" class="margin-btm">
+
+            <!-- Login -->
 
             <div id="login" class="border margin-btm" style="padding: .4rem .5rem .6rem .5rem;">
                 <label>
                     <span style="display: block">Private Key:</span>
-                    <input type="password" name="private_key" id="pri_key" style="width: 60%; margin: .5em 0;">
+                    <input type="password" name="private_key" id="pri_key" style="width: 59%; margin: .5em 0;">
                 </label>
                 <button style="width: 10%; padding: .2em" onclick="">📋</button>
                 <button style="width: 10%; padding: .2em" onclick="generate_qr(this)">🔳</button>
                 <button style="width: 10%; padding: .2em;" id="toggle_pass" onclick="toggle_password(this)">🙈</button>
                 <div id="login_qr"></div>
-                <button style="width: 30%;" onclick="gen_pri_key(this)">Generate</button>
+                <button style="width: 30%;" onclick="gen_pri_key_btn(this)">Generate</button>
                 <button type="submit" style="color: var(--theme-color); width: 66%" onclick="login(this)">Login</button>
-                <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+                <script src="js/qr.js"></script>
                 <script>
                     function generate_qr(ele) {
                         const pri_key = ele_get("#pri_key").value;
@@ -256,8 +219,8 @@
                             ele.textContent = "🙈";
                         }
                      }
-                    function gen_pri_key(ele) {
-                        const pri_key = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
+                    function gen_pri_key_btn(ele) {
+                        const pri_key = gen_prikey();
                         ele_get("#pri_key").value = pri_key;
                         ele_get("#pri_key").type = "text";
                         ele_get("#toggle_pass").textContent = "🐵";
@@ -276,17 +239,23 @@
                 </style>
             </div>
 
-            <div id="account" style="display: none; position: relative; border: .5px solid gray; cursor: pointer; margin-bottom: .6rem"">
-                <div id="account-toggle" style="display: flex; padding: .4rem .4rem; position: relative; flex-direction: column;">
+            <!-- Account -->
+
+            <div id="account" class="margin-btm" style="display: none; position: relative; border: .5px solid gray; cursor: pointer;">
+                <div style="display: flex; padding: .8rem .8rem; position: relative; flex-direction: column;">
                     <div class="account-main" style="display:flex">
-                        <img src="https://i.pinimg.com/564x/c0/06/5c/c0065cbde31f0a768ed1fe201cc72ea1.jpg" alt="Profile Picture">
+                        <img class="account_main_picture" src="assets/default-profile.png" alt="Profile Picture">
                         <div style="flex-grow: 1">
-                            <p class="account-name" style="margin: 0;"><a>Aman Varma</a></p>
-                            <small style="margin: 0;">@AnzenKodo</small>
+                            <p class="account_main_display_name" style="margin: 0;"><a>Aman</a></p>
+                            <small class="account_main_username" style="margin: 0;">@AnzenKodo</small>
                         </div>
-                        <div style="font-size: 20px; margin-left: 10px;">&#9660;</div>
+                        <button id="account-arrow" style="font-size: 20px; margin-left: 10px; border-radius: 50%; padding: 0rem .5rem 0rem .5rem;">&#9660;</button>
                     </div>
-                    <small style="margin-top: 5px;">grinding hard in mom's basement.</small>
+                    <small class="account_main_about" style="margin: var(--spacing) 0">grinding hard in mom's basement.</small>
+                    <span>
+                        <button style="font-size: .7rem; width: 86%;">Edit Profile</button>
+                        <button style="font-size: .7rem; width: 10%;" onclick="logout()">🚪</button>
+                    <span>
                 </div>
 
                 <div id="account-options">
@@ -315,6 +284,8 @@
                 </div>
             </div>
 
+            <!-- Footer -->
+
             <footer class="border" style="font-size: .6rem; text-align: center; line-height: 1rem; padding: .2rem 0">
                 <p style="margin: 0">
                     <strong>Source:</strong> <a href="https://github.com/AnzenKodo/drift">GitHub</a> |
@@ -325,247 +296,165 @@
             </footer>
         </aside>
 
-        <main>
-            <div id="new_post" class="margin-btm">
+        <main id="main">
+
+            <!-- New Post -->
+
+            <div id="new_post" class="margin-btm" style="dispaly: none">
                 <style>
                     #new_post_textbox:empty:before {
                         content: attr(placeholder);
                         color: #888;
                     }
                 </style>
-                <div contenteditable="true" placeholder="Start typing here..."  id="new_post_textbox" class="border" style="height: 6rem; font-size: .6rem; padding: .5rem; resize: none; overflow-x: auto; white-space: pre-wrap;"></div>
+                <div class="border">
+                    <textarea placeholder="Start typing here..."  id="new_post_textbox" style="height: 6rem; font-size: .6rem; padding: .5rem; resize: none; overflow-x: auto; white-space: pre-wrap; border: none;"></textarea>
+                    <button onclick="send_note()" style="width: 98%; display: block; margin: .5rem auto;">Post</button>
+                </div>
                 <script>
                     const new_post_textbox = document.getElementById('new_post_textbox');
 
-                    new_post_textbox.addEventListener('input', function() {
-                        new_post_textbox.style.height = '6rem';
-                        new_post_textbox.style.height = new_post_textbox.scrollHeight + 'px';
-                    });
+                    if (new_post_textbox && get_content()) {
+                        new_post_textbox.value = get_content();
+                    }
 
-                    new_post_textbox.addEventListener("paste", function(e) {
-                        e.preventDefault();
-                        const text = (e.clipboardData || window.clipboardData).getData('text');
-                        document.execCommand("insertText", false, text);
-                    });
+                    function auto_resize() {
+                        if (this.scrollHeight > 300) {
+                            return
+                        }
+                        this.style.height = '6rem';
+                        this.style.height = this.scrollHeight + 'px';
+                    }
+                    new_post_textbox.addEventListener('input', auto_resize);
+                    new_post_textbox.addEventListener('focus', auto_resize);
 
                     new_post_textbox.addEventListener('keydown', function(e) {
-                        const selection = window.getSelection();
-                        const range = selection.getRangeAt(0);
-                        const selectedText = range.toString();
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+                        const value = this.value;
+                        const selectedText = this.value.substring(start, end);
+
+                        set_content(value)
 
                         if (e.key === 'Tab') {
                             e.preventDefault();
-                            const tabSpace = "    ";
-                            const tabNode = document
-                                .createTextNode("\u00a0\u00a0\u00a0\u00a0");
-
-                            // Insert the tab character at the current cursor position
-                            range.insertNode(tabNode);
-
-                            // Move the cursor after the inserted tab
-                            range.setStartAfter(tabNode);
-                            range.setEndAfter(tabNode);
-
-                            // Clear existing selections and apply the new range
-                            selection.removeAllRanges();
-                            selection.addRange(range);
-
+                            const tabCharacter = "    ";
+                            this.value = this.value.substring(0, start) + tabCharacter + this.value.substring(end);
+                            this.selectionStart = this.selectionEnd = start + tabCharacter.length;
                         }
                         if (e.key === 'b' && e.ctrlKey) {
                             e.preventDefault();
+                            const wrappedText = `**${selectedText}**`;
+                            this.value = this.value.substring(0, start) + wrappedText + this.value.substring(end);
+                            this.selectionStart = start; // Place cursor inside the **
+                            this.selectionEnd = end + 4; // Adjust the end position considering added **
+                        }
+                        if (e.key === 'i' && e.ctrlKey) {
+                            e.preventDefault();
+                            const wrappedText = `_${selectedText}_`;
+                            this.value = this.value.substring(0, start) + wrappedText + this.value.substring(end);
+                            this.selectionStart = start; // Place cursor inside the **
+                            this.selectionEnd = end + 2; // Adjust the end position considering added **
+                        }
+                        if (event.ctrlKey && ['1', '2', '3', '4', '5', '6'].includes(event.key)) {
+                            event.preventDefault();
 
-                            document.execCommand('bold');
+                            const headerLevel = parseInt(event.key);
+                            const headerPrefix = '#'.repeat(headerLevel) + ' ';
 
-                            if (selectedText.length > 0) {
-                                const span = document.createElement('span');
-                                span.innerHTML = `**${selectedText}**`;
+                            const value = this.value;
+                            const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+                            const lineEnd = value.indexOf('\n', start);
+                            const currentLine = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd).trim();
 
-                                // Replace the selected text with the new span
-                                range.deleteContents();
-                                // range.insertNode(span);
+                            // Replace or update the current line with the header prefix
+                            const updatedLine = headerPrefix + currentLine;
 
-                                // Set the selection back to the newly inserted content
-                                selection.removeAllRanges();
-                                selection.addRange(range);
-                            }
+                            // Update the textarea value with the new header at the current line
+                            this.value = value.substring(0, lineStart) + updatedLine + value.substring(lineEnd === -1 ? value.length : lineEnd);
+
+                            // Adjust cursor position after the header is added
+                            const newCursorPos = lineStart + updatedLine.length;
+                            this.selectionStart = this.selectionEnd = newCursorPos;
                         }
                         if (e.ctrlKey && e.key === "Enter") {
                             console.log("Post")
                         }
                     });
                 </script>
-                <button style="width: 100%">Post</button>
             </div>
+
+            <!-- Posts -->
 
             <div id="posts">
-                <article>
-                    <div class="post_profile">
-                        <div class="post_profile_image">
-                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
-                        </div>
-                        <div class="post_profile_info">
-                            <div class="post_profile_info_1">
-                                <a><span class="name">Aman</span></a> <time class="time">10/23/2012・02:32 PM</time></a>
-                            </div>
-                            <div class="post_profile_info_2">
-                                <small>@AnzenKodo</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="post_content">
-                        <p>> opens spotify, searches "focus music"</br>
-                        > sees lofi slop</br>
-                        > opens yt, searches "460mm go bang!"</br>
-                        <video controls>
-                            <source src="vod.mp4" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                        > focus mode on
-                    </div>
-                    <div class="actions">
-                        <button class="actions_comment">Comment (3)</button>
-                        <button class="actions_react">React</button>
-                    </div>
-                </article>
-                <article>
-                    <div class="post_profile">
-                        <div class="post_profile_image">
-                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
-                        </div>
-                        <div class="post_profile_info">
-                            <div class="post_profile_info_1">
-                                <a><span class="name">Aman</span></a> • <time class="time">Today</time></a>
-                            </div>
-                            <div class="post_profile_info_2">
-                                <span>@AnzenKodo</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="post_content">
-                        <p>Gonna slove this</p>
-                        <img src="https://i1.sndcdn.com/artworks-P59I6SjPgHMVcjEI-jwGxDw-t500x500.jpg">
-                    </div>
-                    <div class="actions">
-                        <button class="actions_comment">Comment (3)</button>
-                        <button class="actions_react">React</button>
-                    </div>
-                </article>
-                <article>
-                    <div class="posts_profile">
-                        <div class="posts_profile_image">
-                            <a><img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" /></a>
-                        </div>
-                        <div class="posts_profile_info">
-                            <div>
-                                <a><span class="name">Aman</span></a> • <time class="time">Today</time></a>
-                            </div>
-                            <div>
-                                <span class="username">@AnzenKodo</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="content">
-                        <div class="content">
-
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button class="actions_comment">Comment (3)</button>
-                        <button class="actions_react">React</button>
-                    </div>
-                </article>
-                <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Yesterday</time></a>
-                    </div>
-                    <div class="actions">
-                        <button class="actions_react">React</button>
-                        <button class="actions_comment">Comment (1)</button>
-                    </div>
-                </article>
-                <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">12-Sep-2024</time></a>
-                    </div>
-                    <div class="content">
-                        <p>"Victory did not come to the one who played by the rules; it came to the one who made the rules and imposed them on his enemy."<br>-- Genghis Khan</p>
-                        <p>"Don’t waste the rest of your time here worrying about other people—unless it affects the common good. It will keep you from doing anything useful. You’ll be too preoccupied with what so-and-so is doing, and why, and what they’re saying, and what they’re thinking, and what they’re up to, and all the other things that throw you off and keep you from focusing on your own mind."<br>--Marcus Aurelius
-                    </div>
-                    <div class="actions">
-                        <button class="actions_react">React</button>
-                        <button class="actions_comment">Comment (3)</button>
-                    </div>
-                </article>
-                <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
-                    </div>
-                    <div class="content">
-                        <p>Leftism isn’t supposed to make sense. It’s supposed to sound nice on paper.</p>
-                        </p>"Government giving money to poor people". Sounds nice on paper, but have  horrifying effect on economic.</p>
-                    </div>
-                    <div class="actions">
-                        <button class="actions_react">React</button>
-                        <button class="actions_comment">Comment (1)</button>
-                    </div>
-                </article>
-                <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
-                    </div>
-                    <div class="content">
-                        <p>currently writing nostr relay in go. i have come to understand that i have lots of skill issues.</p>
-                    </div>
-                    <div class="actions">
-                        <button class="actions_react">React</button>
-                        <button class="actions_comment">Comment (3)</button>
-                    </div>
-                </article>
-                <article>
-                    <a class="profile_image">
-                        <img src="https://avatars.githubusercontent.com/u/50282743" alt="Profile image" />
-                    </a>
-                    <div class="info">
-                        <a><span class="name">Aman</span></a> <span class="username">@AnzenKodo</span> • <time class="time">Today</time></a>
-                    </div>
-                    <div class="content">
-                        <p>you code for money<br>
-                        i code for skills<br><br>
-
-                        we are not the same
-                        </p>
-                    </div>
-                    <div class="actions">
-                        <button class="actions_react">React</button>
-                        <button class="actions_comment">Comment (15)</button>
-                    </div>
-                </article>
+                <style>
+                    #posts article {
+                        border: var(--border);
+                        padding: var(--spacing);
+                        margin-bottom: var(--spacing);
+                    }
+                    #posts .post_profile {
+                        display: flex;
+                        flex-flow: row;
+                        width: 100%;
+                    }
+                    #posts .post_profile_image {
+                        margin-right: .3rem;
+                    }
+                    #posts .post_profile_image img {
+                        width: 2rem;
+                        height: 2rem;
+                        border-radius: 100%;
+                    }
+                    #posts .post_profile_info {
+                        display: flex;
+                        flex-flow: column;
+                        width: 15rem;
+                        flex: 1;
+                    }
+                    #posts .post_profile_info_1 {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    #posts .post_profile_info_1 time {
+                        text-align: right;
+                    }
+                    #posts .post_content {
+                        margin: var(--spacing) 0;
+                    }
+                    #posts .post_content p {
+                        line-height: 1.2rem;
+                        margin-bottom: var(--spacing);
+                    }
+                    #posts .post_content img {
+                        display: block;
+                        margin: 0rem auto .5rem auto;
+                    }
+                    #posts .post_content video {
+                        max-width: 100%;
+                        margin: 0 auto;
+                        margin-top: .3rem;
+                    }
+                    #go-to-top {
+                        position: fixed;
+                        bottom: 20px;
+                        right: 20px;
+                        border-radius: 50%;
+                        padding: 10px 15px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        background: var(--background-color);
+                    }
+                    #go-to-top:hover {
+                        text-decoration: none;
+                    }
+                </style>
             </div>
+
+            <a id="go-to-top" class="border-click" href="#main">↥</a>
         </main>
-        <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
-        <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
+        <script src="js/index.js"></script>
         <script>
-            const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
-            const sha256 = nobleSecp256k1.utils.sha256;
-
-            let pri_key = localStorage.getItem("pri_key");
-            let pub_key = get_pub_key(pri_key);
-
-            const relay = "ws://cfrelay.haorendashu.workers.dev";
-            const ws = new WebSocket(relay);
-
             const login_input = document.querySelector("#pri_key");
             const login_button = document.querySelector("#login");
             const new_post = document.querySelector("#new_post");
@@ -574,59 +463,11 @@
             const accountToggle = document.getElementById('account-toggle');
             const accountOptions = document.getElementById('account-options');
             const account = document.getElementById('account');
-            function dateNow() {
-                return Math.floor(Date.now() / 1000);
-            }
-            async function getPublicKey() {
-                return await window.nostr.getPublicKey();
-            }
 
-            function setupLogin() {
-                login_button.style.display = "none";
-                account.style.display = "";
-                new_post.style.display = "";
-            }
-
-            if (localStorage.getItem("pri_key")) {
-                setupLogin();
-                login()
-            } else {
-                not_login();
-            }
-
-            function not_login() {
-            }
-
-            function get_pub_key(pri_key) {
-                return nobleSecp256k1.getPublicKey(pri_key, true).substring(2);
-            }
-
-            async function login() {
-
-                pri_key = localStorage.getItem("pri_key");
-                pub_key = get_pub_key(pri_key);
-
-                ws.addEventListener('open', async (e) => {
-                    console.log("connected to " + relay);
-                    const sub_id = bytesToHex(
-                        nobleSecp256k1.utils.randomPrivateKey()
-                    ).substring(0, 16);
-
-                    const filter  = { "authors": [ pub_key ] };
-                    const subscription = [ "REQ", sub_id, filter ]
-                    console.log('Subscription:', subscription);
-                    ws.send(JSON.stringify(subscription));
-                });
-
-                ele_get("#new_post_textbox").addEventListener("click", async () => {
-                    await sendPubNote();
-                });
-            }
-
-            async function sendPubNote() {
+            async function sendPubNote(content) {
                 const event = {
-                    "content": "Hello World!",
-                    "created_at": dateNow(),
+                    "content": content,
+                    "created_at": date_now(),
                     "kind": 1,
                     "tags": [],
                     "pubkey": pub_key,
@@ -636,18 +477,6 @@
                 console.log("signedEvent:", signedEvent);
                 ws.send(JSON.stringify(["EVENT", signedEvent]));
             }
-
-
-            // ws.addEventListener('message', async function(message) {
-            //     const [ type, subId, event ] = JSON.parse(message.data);
-            //     const { kind, content } = event || {}
-            //     if (!event || event === true) return;
-            //     console.log('message:', event);
-            //     if (kind === 4) {
-            //         content = await decrypt(privKey, event.pubkey, content);
-            //     }
-            //     console.log('content:', content);
-            // });
 
             async function getSignedEvent(event) {
                 var eventData = JSON.stringify([
@@ -667,7 +496,12 @@
 
             //==============================================================
 
-            accountToggle.addEventListener('click', function() {
+            ele_get("#account-arrow").addEventListener('click', function() {
+                if (this.innerHTML === "▲") {
+                    this.innerHTML = "&#9660;";
+                } else {
+                    this.innerHTML = "&#9650;"
+                }
                 accountOptions.classList.toggle('active');
             });
         </script>
