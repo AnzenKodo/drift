@@ -81,6 +81,15 @@
             button:active {
                 border-style: dotted;
             }
+            input {
+                border: var(--border);
+            }
+            input:hover {
+                border: var(--border-hover);
+            }
+            input:active {
+                var(--border-focus);
+            }
             textarea {
                 width: 100%;
                 height: 7rem;
@@ -165,11 +174,17 @@
             .margin-btm {
                 margin-bottom: var(--spacing);
             }
+            emoji-picker {
+                position: absolute;
+                --background: var(--background-color);
+                --emoji-size: 1rem;
+            }
         </style>
         <script src="js/ecdh.js"></script>
         <script src="js/cipher.js"></script>
         <script src="js/md.js"></script>
         <script src="js/purify.js"></script>
+        <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
         <script>
             const { getSharedSecret, schnorr, utils } = nobleSecp256k1;
             const sha256 = nobleSecp256k1.utils.sha256;
@@ -178,6 +193,32 @@
         <script src="js/utils.js"></script>
     </head>
     <body>
+        <dialog id="account_edit" open>
+            <style>
+                #account_edit label, #account_edit .servers {
+                    display:block;
+                    margin-bottom: .5rem;
+                    width: 100%;
+                }
+                #profile_edit input {
+                }
+            </style>
+            <p>Profile Edit:</p>
+            <form method="dialog">
+                <label>Name:    <input class="account_edit_display_name"></label>
+                <label>Status:  <input class="account_edit_status"></label>
+                <label>Profile Photo:    <input class="account_edit_picture"></label>
+                <label>Banner:  <input class="account_edit_banner"></label>
+                <label>Website: <input class="account_edit_about"></label>
+                <label>Servers:
+                    <input class="servers" style="margin-top: .5rem">
+                    <input class="servers">
+                    <input class="servers">
+                </label>
+              <button>Submit</button>
+              <button>Cancel</button>
+            </form>
+        </dialog>
         <aside>
             <img src="./logo.png" alt="Logo" id="logo" class="margin-btm">
 
@@ -251,7 +292,7 @@
                     </div>
                     <small class="account_main_about" style="margin: var(--spacing) 0">grinding hard in mom's basement.</small>
                     <span>
-                        <button style="font-size: .7rem; width: 86%;">Edit Profile</button>
+                        <button style="font-size: .7rem; width: 86%;" onclick="edit_profile()">Edit Profile</button>
                         <button style="font-size: .7rem; width: 10%;" onclick="logout()">🚪</button>
                     <span>
                 </div>
@@ -452,6 +493,7 @@
             <a id="go-to-top" class="border-click" href="#main">↥</a>
         </main>
         <script src="js/index.js"></script>
+        <script src="js/index2.js" type="module"></script>
         <script>
             const login_input = document.querySelector("#pri_key");
             const login_button = document.querySelector("#login");

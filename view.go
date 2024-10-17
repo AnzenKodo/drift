@@ -13,12 +13,12 @@ func view_style_init() {
 	rl.SetTargetFPS(60)
     rg.LoadStyleDefault()
 
+    rg.LoadStyle("./assets/cyber.rgs")
     font = rl.LoadFontEx("./assets/Urbanist.ttf", 100, nil, 0)
     rl.GenTextureMipmaps(&font.Texture);
     rl.SetTextureFilter(font.Texture, rl.FilterBilinear);
     rg.SetFont(font)
 
-    // rg.LoadStyle("./assets/cyber.rgs")
     rg.SetStyle(rg.DEFAULT, rg.TEXT_SIZE, 20)
 }
 
@@ -31,13 +31,13 @@ func view_start() {
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
-        rl.ClearBackground(viewInfo.bg_color)
-		button = rg.Button(rl.NewRectangle(50, 150, 100, 40), "Click")
-		rl.DrawTextEx(font, "Hello", fontPosition, float32(50), 0, rl.Color{0, 0, 0, 255})
+            rl.ClearBackground(viewInfo.bg_color)
+    		button = rg.Button(rl.NewRectangle(50, 150, 100, 40), "Click")
+    		rl.DrawTextEx(font, "Hello", fontPosition, float32(50), 0, rl.Color{0, 0, 0, 255})
 
-		if button {
-			fmt.Println("Clicked on button")
-		}
+    		if button {
+    			fmt.Println("Clicked on button")
+    		}
 
 		rl.EndDrawing()
 	}
