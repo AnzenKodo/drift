@@ -181,9 +181,17 @@ function set_profile(pubkey, name, display_name, about, picture, website, banner
     eles_get(`.profile_picture_${pubkey}`).forEach(ele => {
         ele.src = picture || "assets/default-profile.png";
         ele.alt = `Profile image of ${fname}`;
+
+        ele.value = picture || "assets/default-profile.png";
     } );
-    eles_get(`.profile_display_name_${pubkey}`).forEach(ele => ele.textContent = fname );
-    eles_get(`.profile_about_${pubkey}`).forEach(ele => ele.textContent = about );
+    eles_get(`.profile_display_name_${pubkey}`).forEach(ele => {
+        ele.textContent = fname
+        ele.value = fname;
+    });
+    eles_get(`.profile_about_${pubkey}`).forEach(ele => {
+        ele.textContent = about;
+        ele.value = about;
+    });
 }
 
 async function get_sig_note(content) {
@@ -220,5 +228,5 @@ async function get_sig_event(event) {
 if (get_prikey()) {
     setup_login(true);
 } else {
-    not_login();
+    // not_login();
 }

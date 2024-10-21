@@ -90,16 +90,15 @@ func engineHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    // view_start()
-    erun, eport, vrun, vport, vpath := cliHandler()
-    _ = eport
-    _ = vrun
+    view_start()
+    // erun, eport, vrun, vport, vpath := cliHandler()
+    // _ = eport
+    // _ = vrun
+
     // engineMux := http.NewServeMux()
     // engineMux.HandleFunc("/", engineHandler)
     // engineMux.HandleFunc("/favicon.ico", showFavicon)
-
-    viewMux := http.NewServeMux()
-    viewMux.Handle("/", http.FileServer(http.Dir(vpath)))
+    // engineMux.HandleFunc("/logo.jpg", showLogo)
 
     // go func() {
     //     if !vrun {
@@ -109,9 +108,12 @@ func main() {
     //     }
     // }()
 
-    if !erun {
-        pLog(LView, LInfo, "Serving " + viewInfo.name +" from `" + vpath + "` at http://localhost:" + vport)
-        err := http.ListenAndServe(":" + vport, viewMux)
-        pLog(LView, LWarn, "", err)
-    }
+    // viewMux := http.NewServeMux()
+    // viewMux.Handle("/", http.FileServer(http.Dir(vpath)))
+
+    // if !erun {
+    //     pLog(LView, LInfo, "Serving " + viewInfo.name +" from `" + vpath + "` at http://localhost:" + vport)
+    //     err := http.ListenAndServe(":" + vport, viewMux)
+    //     pLog(LView, LWarn, "", err)
+    // }
 }

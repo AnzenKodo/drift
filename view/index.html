@@ -48,7 +48,7 @@
                 position: sticky;
                 top: .5rem;
                 height: 90vh;
-                width: 17rem;
+                width: 18rem;
             }
             footer {
                 grid-area: footer;
@@ -193,8 +193,12 @@
         <script src="js/utils.js"></script>
     </head>
     <body>
-        <dialog id="account_edit" open>
+        <dialog id="account_edit">
             <style>
+                #account_edit {
+                    background: var(--background-color);
+                    z-index: 1;
+                }
                 #account_edit label, #account_edit .servers {
                     display:block;
                     margin-bottom: .5rem;
@@ -206,14 +210,14 @@
             <p>Profile Edit:</p>
             <form method="dialog">
                 <label>Name:    <input class="account_edit_display_name"></label>
-                <label>Status:  <input class="account_edit_status"></label>
+                <label>About:  <input class="account_edit_about"></label>
                 <label>Profile Photo:    <input class="account_edit_picture"></label>
                 <label>Banner:  <input class="account_edit_banner"></label>
-                <label>Website: <input class="account_edit_about"></label>
+                <label>Website: <input class="account_edit_website"></label>
                 <label>Servers:
-                    <input class="servers" style="margin-top: .5rem">
-                    <input class="servers">
-                    <input class="servers">
+                    <input class="servers" style="margin-top: .5rem" value="wss://localhost:7447">
+                    <input class="servers" value="wss://aman.xyz.workers.dev">
+                    <input class="servers" value="wss://notworking.com">
                 </label>
               <button>Submit</button>
               <button>Cancel</button>
@@ -285,12 +289,12 @@
                     <div class="account-main" style="display:flex">
                         <img class="account_main_picture" src="assets/default-profile.png" alt="Profile Picture">
                         <div style="flex-grow: 1">
-                            <p class="account_main_display_name" style="margin: 0;"><a>Aman</a></p>
-                            <small class="account_main_username" style="margin: 0;">@AnzenKodo</small>
+                            <p class="account_main_display_name" style="margin: 0;"><a></a></p>
+                            <small class="account_main_username" style="margin: 0;"></small>
                         </div>
                         <button id="account-arrow" style="font-size: 20px; margin-left: 10px; border-radius: 50%; padding: 0rem .5rem 0rem .5rem;">&#9660;</button>
                     </div>
-                    <small class="account_main_about" style="margin: var(--spacing) 0">grinding hard in mom's basement.</small>
+                    <small class="account_main_about" style="margin: var(--spacing) 0"></small>
                     <span>
                         <button style="font-size: .7rem; width: 86%;" onclick="edit_profile()">Edit Profile</button>
                         <button style="font-size: .7rem; width: 10%;" onclick="logout()">🚪</button>
@@ -330,7 +334,7 @@
                     <strong>Source:</strong> <a href="https://github.com/AnzenKodo/drift">GitHub</a> |
                     <strong>Version:</strong> 0.1 |
                     <strong>License:</strong> <a href="https://spdx.org/licenses/MIT">MIT</a>
-                    Made with ❤ in <strong>NalaSopara</strong>
+                    <br>Made with ❤ in <strong>NalaSopara</strong>
                 </p>
             </footer>
         </aside>
@@ -527,7 +531,7 @@
                     event['tags'],
                     event['content']
                 ]);
-                event.id = bytesToHex(
+                event.id = bytes_to_hex(
                     await sha256((new TextEncoder().encode(eventData)))
                 );
                 event.sig = await schnorr.sign(event.id, pri_key);

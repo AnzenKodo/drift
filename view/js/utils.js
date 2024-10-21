@@ -40,7 +40,7 @@ function date_format(timestamp) {
 }
 
 function gen_prikey() {
-    const pri_key = bytesToHex(nobleSecp256k1.utils.randomPrivateKey());
+    return bytes_to_hex(nobleSecp256k1.utils.randomPrivateKey());
 }
 function get_prikey() {
     return localStorage.getItem("prikey");

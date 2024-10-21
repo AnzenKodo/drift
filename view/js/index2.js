@@ -1,23 +1,26 @@
 import {RelayPool} from 'https://esm.sh/nostr@0.2.8';
 
 const pubkey = "32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245"
-const damus = "wss://relay.damus.io"
-const scsi = "wss://nostr-pub.wellorder.net"
-const relays = [damus, scsi]
+const relays = [
+    "wss://relay.damus.io",
+    // "wss://nostr-pub.wellorder.net",
+]
 
 const pool = RelayPool(relays)
 
 pool.on('open', relay => {
     if (get_prikey()) {
-        const filter  = { "authors": [ pubkey ], "kinds": [ 1 ], "limit": 10 };
+        const nagesh = "8e41752295c015f6137182d07940a92a20e2cb62e9a5b1341ec3702f7e57545b";
+        const krishna = "323d84b6e4cb93ba8adf66d8c9ea6029e99c376bb020ed90f3b792186fc87151";
+        const filter  = { "authors": [ get_pubkey(), nagesh, krishna ], "kinds": [ 1 ] };
         // const filter  = { "kinds": [ 1 ], "limit": 1 };
         const id = gen_subid();
         relay.subscribe(id, filter);
         setup_login_profile();
     } else {
-        const filter  = { "kinds": [ 1 ], "limit": 1 };
-        const id = gen_subid();
-        relay.subscribe(id, filter);
+        // const filter  = { "kinds": [ 1 ], "limit": 1 };
+        // const id = gen_subid();
+        // relay.subscribe(id, filter);
     }
 });
 
@@ -31,23 +34,24 @@ pool.on('event', (relay, sub_id, event) => {
             pubkey, name, display_name, about, picture, website, banner, bot
         );
     }
-    if (event.kind == 1) {
+    if (event.kind === 1) {
         const { content, created_at, id, pubkey, tags } = event;
 
         const e_tag = tags[0]
-        if (e_tag.includes("e")) {
-            console.log(e_tag[1]);
-        } else {
+        console.log(e_tag);
+        // if (e_tag[0] === "e") {
+            // console.log(e_tag[1]);
+        // } else {
             createPost(content, created_at, id, pubkey);
             const filter_info = { "kinds": [ 0 ], authors: [ pubkey ] };
             send_req(filter_info);
             const filter_reaction = { "kinds": [ 1, 7 ], "#e": [ id ] };
             send_req(filter_reaction);
-        }
+        // }
     }
-    if (event.kind == 7) {
+    if (event.kind === 7) {
         const tag = event.tags[0];
-        if (tag.includes("e")) {
+        if (tag[0] === "e") {
             const post = document.querySelector(`.post_${tag[1]}`);
             console.log(event);
             if (post) {
@@ -93,15 +97,15 @@ function setup_login_profile() {
     ele_get("#account .account_main_about")
         .className += ` profile_about_${pubkey}`;
 
-    ele_get("#account_edit_display_name")
-        .className += ` profile_username_${pubkey}`;
-    ele_get("#account_edit_status")
-        .className += ` profile_status_${pubkey}`;
-    ele_get("#account_edit_banner")
-        .className += ` profile_banner_${pubkey}`;
-    ele_get("#account_edit_picture")
+    ele_get("#account_edit .account_edit_display_name")
+        .className += ` profile_display_name_${pubkey}`;
+    // ele_get("#account_edit .account_edit_status")
+        // .className += ` profile_status_${pubkey}`;
+    // ele_get("#account_edit .account_edit_banner")
+        // .className += ` profile_banner_${pubkey}`;
+    ele_get("#account_edit .account_edit_picture")
         .className += ` profile_picture_${pubkey}`;
-    ele_get("#account_edit_about")
+    ele_get("#account_edit .account_edit_about")
         .className += ` profile_about_${pubkey}`;
 
     // ele_get("#account .account_main_username").textContent = pubkey;
@@ -109,6 +113,9 @@ function setup_login_profile() {
 }
 
 function edit_profile() {
+    const dialog = ele_get("#account_edit");
+    if (dialog.open) dialog.open = false;
+    else dialog.open = true;
 }
 window.edit_profile = edit_profile;
 
